@@ -11,13 +11,13 @@ object Dependencies {
     val logback       = "1.2.11"
     val scalaCheck    = "1.15.4"
     val scalaTest     = "3.2.11"
-    val scalaTestPlus = "3.2.10.0"
+    val scalaTestPlus = "3.2.11.0"
     val sangria       = "2.1.5"
     val sttp          = "3.4.2"
     val monix         = "3.4.0"
     val scalaScraper  = "2.2.1"
-    val quillJdbc     = "3.8.0"
-    val zioMagic      = "0.3.9"
+    val quillJdbc     = "3.16.3"
+    val zioMagic      = "0.3.11"
     val postgresql    = "42.3.3"
   }
 
@@ -70,7 +70,12 @@ object Dependencies {
   val logLibs = Seq(log4cats, logback)
 
   val coreLibraries: Seq[ModuleID] = catsLibs ++ circeLibs ++ http4sLibs ++ logLibs ++ Seq(
-    sangria, sttp, scalaScrapper, quillJdbc, zioMagic, postgresql
+    sangria,
+    sttp,
+    scalaScrapper,
+    quillJdbc,
+    zioMagic,
+    postgresql
   )
 
   val testLibraries = Seq(

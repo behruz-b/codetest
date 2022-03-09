@@ -1,5 +1,7 @@
-package com.example.codetest.routes
+package com.example.codetest
+
 import cats.effect.{Async, Sync}
+import cats.implicits.toSemigroupKOps
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.typelevel.log4cats.Logger
@@ -12,12 +14,10 @@ object RootRoutes {
 class RootRoutes[F[_]: Async: Logger] {
   implicit object dsl extends Http4sDsl[F]; import dsl._
 
-  private[this] val helloRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
-    case GET -> Root => Ok("Hello World!")
+  private[this] val publicRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
+    case GET -> Root / "graphql" => Ok("Hello World")
+
   }
-
-  val routes: HttpRoutes[F] = helloRoutes
-
-
+  val routes: HttpRoutes[F] = publicRoutes
 
 }
