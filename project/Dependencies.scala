@@ -7,11 +7,13 @@ object Dependencies {
     val catsEffect    = "3.3.5"
     val circe         = "0.14.1"
     val http4s        = "0.23.10"
+    val ciris         = "2.3.2"
+    val refined       = "0.9.28"
     val log4cats      = "2.2.0"
     val logback       = "1.2.11"
     val scalaCheck    = "1.15.4"
-    val scalaTest     = "3.2.11"
-    val scalaTestPlus = "3.2.11.0"
+    val scalaTest     = "3.2.10"
+    val scalaTestPlus = "3.2.10.0"
     val sangria       = "2.1.5"
     val sttp          = "3.4.2"
     val monix         = "3.4.0"
@@ -26,6 +28,10 @@ object Dependencies {
 
     def http4s(artifact: String): ModuleID = "org.http4s" %% artifact % Versions.http4s
 
+    def ciris(artifact: String): ModuleID = "is.cir" %% artifact % Versions.ciris
+
+    def refined(artifact: String): ModuleID = "eu.timepit" %% artifact % Versions.refined
+
     val circeCore    = circe("circe-core")
     val circeGeneric = circe("circe-generic")
     val circeParser  = circe("circe-parser")
@@ -35,6 +41,11 @@ object Dependencies {
     val http4sServer = http4s("http4s-blaze-server")
     val http4sClient = http4s("http4s-blaze-client")
     val http4sCirce  = http4s("http4s-circe")
+
+    val refinedType  = refined("refined")
+
+    val cirisCore    = ciris("ciris")
+    val cirisRefined = ciris("ciris-refined")
 
     val cats       = "org.typelevel" %% "cats-core"   % Versions.cats
     val catsEffect = "org.typelevel" %% "cats-effect" % Versions.catsEffect
@@ -69,7 +80,10 @@ object Dependencies {
 
   val logLibs = Seq(log4cats, logback)
 
-  val coreLibraries: Seq[ModuleID] = catsLibs ++ circeLibs ++ http4sLibs ++ logLibs ++ Seq(
+  val cirisLibs = Seq(cirisRefined, cirisCore)
+
+  val coreLibraries: Seq[ModuleID] = catsLibs ++ cirisLibs ++ circeLibs ++ http4sLibs ++ logLibs ++ Seq(
+    refinedType,
     sangria,
     sttp,
     scalaScrapper,

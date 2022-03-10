@@ -2,6 +2,7 @@ package com.example.codetest
 import cats.effect.std.Console
 import cats.effect.{Async, ExitCode}
 import cats.implicits._
+import com.example.codetest.config.{ConfigLoader, HttpServerConfig}
 import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.typelevel.log4cats.Logger
@@ -12,14 +13,15 @@ object Server {
 
   def run[F[_]: Async: Logger: Console]: F[ExitCode] =
     for {
-      httpAPI  <- HttpApi[F]
-      _ <- server[F](httpAPI.httpApp)
+      conf <- ConfigLoader.app[F]
+      httpAPI  <- HttpApi[F](conf.logConfig)
+      _ <- server[F](httpAPI.httpApp, conf.serverConfig)
     } yield ExitCode.Success
 
-  private[this] def server[F[_]: Async](httpApp: HttpApp[F]): F[Unit] =
+  private[this] def server[F[_]: Async](httpApp: HttpApp[F], serverConfig: HttpServerConfig): F[Unit] =
     BlazeServerBuilder[F]
       .withExecutionContext(global)
-      .bindHttp(8080, "0.0.0.0")
+      .bindHttp(serverConfig.port.value, serverConfig.host.value)
       .withHttpApp(httpApp)
       .serve
       .compile
