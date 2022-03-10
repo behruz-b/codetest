@@ -13,9 +13,9 @@ object Server {
 
   def run[F[_]: Async: Logger: Console]: F[ExitCode] =
     for {
-      conf <- ConfigLoader.app[F]
-      httpAPI  <- HttpApi[F](conf.logConfig)
-      _ <- server[F](httpAPI.httpApp, conf.serverConfig)
+      conf    <- ConfigLoader.app[F]
+      httpAPI <- HttpApi[F](conf.logConfig)
+      _       <- server[F](httpAPI.httpApp, conf.serverConfig)
     } yield ExitCode.Success
 
   private[this] def server[F[_]: Async](httpApp: HttpApp[F], serverConfig: HttpServerConfig): F[Unit] =

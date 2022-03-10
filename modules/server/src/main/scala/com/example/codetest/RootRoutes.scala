@@ -1,7 +1,6 @@
 package com.example.codetest
 
 import cats.effect.{Async, Sync}
-import cats.implicits.toSemigroupKOps
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.typelevel.log4cats.Logger

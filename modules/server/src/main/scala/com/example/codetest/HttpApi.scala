@@ -1,7 +1,7 @@
 package com.example.codetest
 
 import cats.effect._
-import com.example.codetest.config.{AppConfig, LogConfig}
+import com.example.codetest.config.LogConfig
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.server.{Router, middleware}
