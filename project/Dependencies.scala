@@ -4,7 +4,7 @@ import sbt._
 object Dependencies {
   object Versions {
     val cats          = "2.7.0"
-    val catsEffect    = "3.3.5"
+    val catsEffect    = "3.1.1"
     val circe         = "0.14.1"
     val http4s        = "0.23.10"
     val ciris         = "2.3.2"
@@ -14,13 +14,14 @@ object Dependencies {
     val scalaCheck    = "1.15.4"
     val scalaTest     = "3.2.10"
     val scalaTestPlus = "3.2.10.0"
-    val sangria       = "2.1.5"
+    val sangria       = "3.0.0"
     val sttp          = "3.4.2"
     val monix         = "3.4.0"
     val scalaScraper  = "2.2.1"
     val quillJdbc     = "3.16.3"
     val zioMagic      = "0.3.11"
     val postgresql    = "42.3.3"
+    val doobie        = "1.0.0-RC1"
   }
 
   object Libraries {
@@ -32,9 +33,21 @@ object Dependencies {
 
     def refined(artifact: String): ModuleID = "eu.timepit" %% artifact % Versions.refined
 
+    def doobie(artifact: String): ModuleID = "org.tpolecat" %% artifact % Versions.doobie
+
+    def sttp(artifact: String): ModuleID = "com.softwaremill.sttp.client3" %% artifact % Versions.sttp
+
+    def sangria(artifact: String, version: String): ModuleID = "org.sangria-graphql" %% artifact % version
+
     val circeCore    = circe("circe-core")
     val circeGeneric = circe("circe-generic")
     val circeParser  = circe("circe-parser")
+    val circeOptics  = circe("circe-optics")
+
+    val doobieCore     = doobie("doobie-core")
+    val doobiePostgres = doobie("doobie-postgres")
+    val doobieHikari   = doobie("doobie-hikari")
+    val doobieQuill    = doobie("doobie-quill")
 
     val http4sDsl    = http4s("http4s-dsl")
     val http4sCore   = http4s("http4s-core")
@@ -42,7 +55,10 @@ object Dependencies {
     val http4sClient = http4s("http4s-blaze-client")
     val http4sCirce  = http4s("http4s-circe")
 
-    val refinedType  = refined("refined")
+    val sttpHttp4sBackend = sttp("http4s-backend")
+    val sttpCirce         = sttp("circe")
+
+    val refinedType = refined("refined")
 
     val cirisCore    = ciris("ciris")
     val cirisRefined = ciris("ciris-refined")
@@ -53,11 +69,11 @@ object Dependencies {
     val log4cats = "org.typelevel" %% "log4cats-slf4j"  % Versions.log4cats
     val logback  = "ch.qos.logback" % "logback-classic" % Versions.logback
 
-    val sangria = "org.sangria-graphql" %% "sangria" % Versions.sangria
+    val sangriaSelf  = sangria("sangria", Versions.sangria)
+    val sangriaCirce = sangria("sangria-circe", "1.3.2")
 
-    val sttp = "com.softwaremill.sttp.client3" %% "core" % Versions.sttp
-
-    val monix = "io.monix" %% "monix" % Versions.monix // not added yet, it gives conflict with cats-effect version
+//    val monix = "io.monix" %% "monix" % "3.4.0"
+//    val monixCats = "io.monix" %% "monix-cats" % "2.3.3" // not added yet, it gives conflict with cats-effect version
 
     val scalaScrapper = "net.ruippeixotog" %% "scala-scraper" % Versions.scalaScraper
 
@@ -72,25 +88,30 @@ object Dependencies {
 
   }
 
-  val circeLibs = Seq(circeCore, circeGeneric, circeParser)
+  val circeLibs = Seq(circeCore, circeGeneric, circeParser, circeOptics)
+
+  val doobieLibs = Seq(doobieCore, doobiePostgres, doobieHikari, doobieQuill)
 
   val catsLibs = Seq(cats, catsEffect)
 
   val http4sLibs = Seq(http4sDsl, http4sCore, http4sServer, http4sClient, http4sCirce)
 
+  val sttpLibs = Seq(sttpHttp4sBackend, sttpCirce)
+
   val logLibs = Seq(log4cats, logback)
 
   val cirisLibs = Seq(cirisRefined, cirisCore)
 
-  val coreLibraries: Seq[ModuleID] = catsLibs ++ cirisLibs ++ circeLibs ++ http4sLibs ++ logLibs ++ Seq(
-    refinedType,
-    sangria,
-    sttp,
-    scalaScrapper,
-    quillJdbc,
-    zioMagic,
-    postgresql
-  )
+  val coreLibraries: Seq[ModuleID] =
+    catsLibs ++ doobieLibs ++ cirisLibs ++ circeLibs ++ http4sLibs ++ sttpLibs ++ logLibs ++ Seq(
+      refinedType,
+      sangriaSelf,
+      sangriaCirce,
+      scalaScrapper,
+      quillJdbc,
+      zioMagic,
+      postgresql
+    )
 
   val testLibraries = Seq(
     scalaCheck,
