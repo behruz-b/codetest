@@ -15,7 +15,8 @@ object ConfigLoader {
     env("POSTGRES_USER").as[NonEmptyString],
     env("POSTGRES_PASSWORD").as[NonEmptyString],
     env("POSTGRES_DATABASE").as[NonEmptyString],
-    env("POSTGRES_POOL_SIZE").as[PosInt]
+    env("POSTGRES_SCHEME").as[NonEmptyString],
+    env("POSTGRES_DRIVER").as[NonEmptyString]
   ).parMapN(DBConfig.apply)
 
   private[this] def httpLogConfig: ConfigValue[Effect, LogConfig] = (

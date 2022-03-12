@@ -10,5 +10,6 @@ case class DBConfig(
   user: NonEmptyString,
   password: NonEmptyString,
   database: NonEmptyString,
-  poolSize: PosInt
+  driver: NonEmptyString,
+  schema: NonEmptyString
 )
