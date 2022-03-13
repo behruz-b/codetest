@@ -9,7 +9,7 @@ import org.http4s.{HttpRoutes, StaticFile}
 
 object PlaygroundRoutes {
 
-  def apply[F[_]: Sync: Async]: HttpRoutes[F] = {
+  def apply[F[_]: Sync: Async](): HttpRoutes[F] = {
     object dsl extends Http4sDsl[F];
     import dsl._
     HttpRoutes.of[F] {

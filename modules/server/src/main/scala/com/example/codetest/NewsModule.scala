@@ -4,7 +4,7 @@ import _root_.sangria.schema._
 import cats.effect._
 import cats.effect.std.Dispatcher
 import cats.implicits._
-import com.example.codetest.api.GraphQL
+import com.example.codetest.api.{GraphQL, GraphQLRoutes, PlaygroundRoutes}
 import com.example.codetest.config.DBConfig
 import com.example.codetest.repo.NewsRepo
 import com.example.codetest.sangria.SangriaGraphQL
@@ -15,6 +15,8 @@ import org.http4s._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 import org.typelevel.log4cats.Logger
+import com.example.codetest.RefinedCustomTypes._
+import com.example.codetest.scraper.{NYTimes, Scraper}
 
 import java.util.Timer
 import scala.concurrent.ExecutionContext.global
@@ -53,23 +55,32 @@ trait NewsModule {
       Schema(
         query = QueryType[F]
       ),
-      repo.pure[F],
-      blockingContext
+      repo.pure[F]
     )
 
-  def graphQLServer[F[_]: Async: Timer: Logger](
+  def server[F[_]: Async: Timer](
+    routes: HttpRoutes[F]
+  ): F[Unit] =
+    BlazeServerBuilder[F]
+      .withExecutionContext(global)
+      .bindHttp(8080, "0.0.0.0")
+      .withHttpApp(routes.orNotFound)
+      .serve
+      .compile
+      .drain
+
+  def graphQLServer[F[_]: Async: Timer: Logger: Dispatcher](
     repo: NewsRepo[F]
-  ): Resource[F, Server[F]] = {
+  ): Resource[F, Server] = {
     val rts = httpRoutes(repo)
-    server[F]
+    server[F](rts)
   }
 
-  def httpRoutes[F[_]: ConcurrentEffect: ContextShift: Timer](
-    repo: NewsRepo[F],
-    b: Blocker
+  def httpRoutes[F[_]: Async: Timer: Dispatcher](
+    repo: NewsRepo[F]
   ): HttpRoutes[F] = {
-    val gql = graphQL[F](repo, b.blockingContext)
-    GraphQLRoutes[F](gql) <+> PlaygroundRoutes(b)
+    val gql = graphQL[F](repo)
+    GraphQLRoutes[F](gql) <+> PlaygroundRoutes()
   }
 
   def scraper[F[_]: Sync](url: URL): Scraper[F] =

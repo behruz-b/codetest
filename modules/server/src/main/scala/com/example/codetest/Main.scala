@@ -9,7 +9,7 @@ import org.typelevel.log4cats.Logger
 
 import scala.concurrent.ExecutionContext.global
 
-object Server {
+object Main {
 
   def run[F[_]: Async: Logger: Console]: F[ExitCode] =
     for {

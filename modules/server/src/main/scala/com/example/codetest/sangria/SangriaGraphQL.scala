@@ -1,19 +1,18 @@
 package com.example.codetest.sangria
 
 import _root_.sangria.ast._
-import _root_.sangria.execution.{WithViolations, _}
+import _root_.sangria.execution._
 import _root_.sangria.marshalling.circe._
 import _root_.sangria.parser.{QueryParser, SyntaxError}
 import _root_.sangria.schema._
 import _root_.sangria.validation._
 import cats.effect._
 import cats.implicits._
+import com.example.codetest.api.GraphQL
 import io.circe.optics.JsonPath.root
 import io.circe.{Json, JsonObject}
-import com.example.codetest.api.GraphQL
 
-import scala.concurrent.ExecutionContext
-import cats.effect.unsafe.implicits.global
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.util.{Failure, Success}
 
 /** A GraphQL implementation based on Sangria. */
@@ -23,6 +22,7 @@ object SangriaGraphQL {
   private val queryStringLens = root.query.string
   private val operationNameLens = root.operationName.string
   private val variablesLens = root.variables.obj
+  implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
   // Format a SyntaxError as a GraphQL `errors`
   private def formatSyntaxError(e: SyntaxError): Json =
@@ -80,8 +80,7 @@ object SangriaGraphQL {
     // The rest of the constructor
     def apply[A](
         schema: Schema[A, Unit],
-        userContext: F[A],
-        blockingExecutionContext: ExecutionContext
+        userContext: F[A]
     )(implicit
         F: Async[F]
     ): GraphQL[F] =
@@ -110,9 +109,7 @@ object SangriaGraphQL {
         ): F[Either[Json, Json]] =
           QueryParser.parse(query) match {
             case Success(ast) =>
-              exec(schema, userContext, ast, operationName, variables)(
-                blockingExecutionContext
-              )
+              exec(schema, userContext, ast, operationName, variables)
             case Failure(e @ SyntaxError(_, _, _)) =>
               fail(formatSyntaxError(e))
             case Failure(e) => fail(formatThrowable(e))
@@ -129,7 +126,7 @@ object SangriaGraphQL {
             query: Document,
             operationName: Option[String],
             variables: JsonObject
-        )(implicit ec: ExecutionContext): F[Either[Json, Json]] =
+        ): F[Either[Json, Json]] =
           userContext
             .flatMap { ctx =>
               F.async_ { (cb: Either[Throwable, Json] => Unit) =>
