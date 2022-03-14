@@ -1,6 +1,6 @@
 package com.example.codetest.repo
 
-import cats.effect.Sync
+import cats.effect.{Async, Sync}
 import cats.implicits._
 import com.example.codetest.Headline
 import doobie._
@@ -17,15 +17,16 @@ trait NewsRepo[F[_]] {
 
 object NewsRepo {
 
-  def fromTransactor[F[_]: Sync: Logger](xa: Transactor[F]): NewsRepo[F] =
+  def fromTransactor[F[_]: Async: Logger](xa: Transactor[F]): NewsRepo[F] =
     new NewsRepo[F] {
       val dc = new DoobieContext.Postgres(Literal)
 
       import dc._
 
-      def fetchAll: F[List[Headline]] = {
-        val q = quote(query[Headline])
-        Logger[F].debug(s"NewsRepo.fetchAll") *> run(q).transact(xa)
+      override def fetchAll: F[List[Headline]] = {
+//        val q = quote(query[Headline])
+//        run(q).transact(xa)
+        ???
       }
 
       override def upsert(headlines: List[Headline]): F[Int] = {

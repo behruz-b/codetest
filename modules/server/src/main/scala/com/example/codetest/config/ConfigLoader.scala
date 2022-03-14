@@ -4,9 +4,12 @@ import cats.effect.Async
 import cats.implicits._
 import ciris._
 import ciris.refined.refTypeConfigDecoder
+import com.example.codetest.RefinedCustomTypes.URL
 import eu.timepit.refined.types.net.UserPortNumber
 import eu.timepit.refined.types.numeric.PosInt
 import eu.timepit.refined.types.string.NonEmptyString
+
+import scala.concurrent.duration.FiniteDuration
 
 object ConfigLoader {
   private[this] def databaseConfig: ConfigValue[Effect, DBConfig] = (
@@ -15,7 +18,7 @@ object ConfigLoader {
     env("POSTGRES_USER").as[NonEmptyString],
     env("POSTGRES_PASSWORD").as[NonEmptyString],
     env("POSTGRES_DATABASE").as[NonEmptyString],
-    env("POSTGRES_SCHEME").as[NonEmptyString],
+    env("POSTGRES_SCHEMA").as[NonEmptyString],
     env("POSTGRES_DRIVER").as[NonEmptyString]
   ).parMapN(DBConfig.apply)
 
@@ -29,9 +32,15 @@ object ConfigLoader {
     env("HTTP_PORT").as[UserPortNumber]
   ).parMapN(HttpServerConfig.apply)
 
+  private[this] def scrapeConfig: ConfigValue[Effect, ScrapeConfig] = (
+    env("SCRAPE_URL").as[URL],
+    env("INTERVAL").as[FiniteDuration]
+  ).parMapN(ScrapeConfig.apply)
+
   def app[F[_]: Async]: F[AppConfig] = (
     databaseConfig,
     httpLogConfig,
-    httpServerConfig
+    httpServerConfig,
+    scrapeConfig
   ).parMapN(AppConfig.apply).load[F]
 }

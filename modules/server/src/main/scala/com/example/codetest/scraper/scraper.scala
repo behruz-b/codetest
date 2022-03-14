@@ -1,8 +1,7 @@
 package com.example.codetest.scraper
 
-import cats.effect.Sync
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.effect._
+import cats.implicits._
 import com.example.codetest.Headline
 import com.example.codetest.RefinedCustomTypes.URL
 import net.ruippeixotog.scalascraper.browser.{Browser, JsoupBrowser}
@@ -14,26 +13,29 @@ trait Scraper[F[_]] {
   def headlines(): F[List[Headline]]
 }
 
-private[news] class NYTimes[F[_]: Sync](
-    url: URL,
-    browser: Browser,
-    getDoc: Browser => F[Document]
+class NYTimes[F[_]: Sync](
+  url: URL,
+  browser: Browser,
+  getDoc: Browser => F[Document]
 ) extends Scraper[F] {
 
   def headlines(): F[List[Headline]] =
     for {
-      doc <- getDoc(browser)
+      doc    <- getDoc(browser)
       values <- Sync[F].delay(extractValues(doc))
-      list = values.map {
-        case (title, link) =>
-          val fullUrl =
-            if (link.startsWith(url.value)) link else url.value + link
-          Headline(title, fullUrl)
+      list = values.map { case (title, link) =>
+        val fullUrl =
+          if (link.startsWith(url.value)) link else url.value + link
+        Headline(title, fullUrl)
       }
     } yield list
 
   private def extractValues(doc: Document): List[(String, String)] =
-    doc >> elementList("a:has(h2)") >> (text("h2"), attr("href"))
+    doc >> elementList("a:has(h2)").map { elements =>
+      elements.map { e =>
+        (e.extract(text("h2")), e.extract(attr("href")))
+      }
+    }
 }
 
 object NYTimes {

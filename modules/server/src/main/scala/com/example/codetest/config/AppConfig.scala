@@ -3,5 +3,6 @@ package com.example.codetest.config
 case class AppConfig(
   dbConfig: DBConfig,
   logConfig: LogConfig,
-  serverConfig: HttpServerConfig
+  serverConfig: HttpServerConfig,
+  scrapeConfig: ScrapeConfig
 )
