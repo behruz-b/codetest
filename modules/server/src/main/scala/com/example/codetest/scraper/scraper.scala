@@ -3,7 +3,7 @@ package com.example.codetest.scraper
 import cats.effect._
 import cats.implicits._
 import com.example.codetest.Headline
-import com.example.codetest.RefinedCustomTypes.URL
+import com.example.codetest.refined.CustomTypes.URL
 import net.ruippeixotog.scalascraper.browser.{Browser, JsoupBrowser}
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._

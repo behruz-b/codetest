@@ -4,7 +4,7 @@ import cats.effect.Async
 import cats.implicits._
 import ciris._
 import ciris.refined.refTypeConfigDecoder
-import com.example.codetest.RefinedCustomTypes.URL
+import com.example.codetest.refined.CustomTypes.URL
 import eu.timepit.refined.types.net.UserPortNumber
 import eu.timepit.refined.types.numeric.PosInt
 import eu.timepit.refined.types.string.NonEmptyString

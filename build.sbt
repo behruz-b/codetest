@@ -10,7 +10,12 @@ lazy val server = (project in file("modules/server"))
     name := "code-test",
     libraryDependencies ++= coreLibraries
   )
-
+ThisBuild / scalacOptions --= Seq(
+  "-Xlint:by-name-right-associative",
+  "-Xlint:nullary-override",
+  "-Xlint:unsound-match",
+  "-Yno-adapted-args"
+)
 lazy val tests = project
   .in(file("modules/tests"))
   .configs(IntegrationTest)

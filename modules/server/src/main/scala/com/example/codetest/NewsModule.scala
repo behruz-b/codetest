@@ -4,7 +4,7 @@ import _root_.sangria.schema._
 import cats.effect._
 import cats.effect.std.Dispatcher
 import cats.implicits._
-import com.example.codetest.RefinedCustomTypes._
+import com.example.codetest.refined.CustomTypes._
 import com.example.codetest.api.{GraphQL, GraphQLRoutes, PlaygroundRoutes}
 import com.example.codetest.config.{ConfigLoader, DBConfig, ScrapeConfig}
 import com.example.codetest.repo.NewsRepo
