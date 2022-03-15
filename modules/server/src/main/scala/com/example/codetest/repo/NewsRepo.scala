@@ -1,12 +1,11 @@
 package com.example.codetest.repo
 
-import cats.effect.{Async, Sync}
-import cats.implicits._
+import cats.effect._
+import cats.implicits.{toFunctorOps, toTraverseOps}
 import com.example.codetest.Headline
 import doobie._
 import doobie.implicits._
-import doobie.quill.DoobieContext
-import io.getquill.{idiom => _, _}
+import doobie.postgres.sqlstate
 import org.typelevel.log4cats.Logger
 
 trait NewsRepo[F[_]] {
@@ -19,26 +18,23 @@ object NewsRepo {
 
   def fromTransactor[F[_]: Async: Logger](xa: Transactor[F]): NewsRepo[F] =
     new NewsRepo[F] {
-      val dc = new DoobieContext.Postgres(Literal)
+      val select: Fragment = fr"""SELECT * FROM headlines"""
 
-      import dc._
+      def insert(headline: Headline): doobie.ConnectionIO[Int] =
+        sql"INSERT INTO headlines (title, link) values (${headline.title}, ${headline.link})".update.run
 
-      override def fetchAll: F[List[Headline]] = {
-//        val q = quote(query[Headline])
-//        run(q).transact(xa)
-        ???
-      }
+      override def fetchAll: F[List[Headline]] =
+        select.query[Headline].to[List].transact(xa)
 
-      override def upsert(headlines: List[Headline]): F[Int] = {
-        val q = quote {
-          liftQuery(headlines).foreach(e =>
-            query[Headline]
-              .insertValue(e)
-              .onConflictUpdate(_.link)((t, e) => t.title -> e.title)
+      override def upsert(headlines: List[Headline]): F[Int] =
+        headlines
+          .traverse(headline =>
+            insert(headline).exceptSqlState { case sqlstate.class23.UNIQUE_VIOLATION =>
+              sql"""UPDATE headlines SET title = ${headline.title}, link = ${headline.link}""".update.run
+            }
           )
-        }
-        run(q).transact(xa).map(_.length)
-      }
+          .transact(xa)
+          .map(_.length)
     }
 
 }

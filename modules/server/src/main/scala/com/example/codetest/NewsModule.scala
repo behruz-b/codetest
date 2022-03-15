@@ -4,9 +4,9 @@ import _root_.sangria.schema._
 import cats.effect._
 import cats.effect.std.Dispatcher
 import cats.implicits._
-import com.example.codetest.refined.CustomTypes._
 import com.example.codetest.api.{GraphQL, GraphQLRoutes, PlaygroundRoutes}
 import com.example.codetest.config.{ConfigLoader, DBConfig, ScrapeConfig}
+import com.example.codetest.refined.CustomTypes._
 import com.example.codetest.repo.NewsRepo
 import com.example.codetest.sangria.SangriaGraphQL
 import com.example.codetest.schema.QueryType
@@ -89,20 +89,22 @@ trait NewsModule {
   ) =
     new ScrapeService[F](scraper, repo, interval)
 
-  def tasks[F[_]: Temporal: Async: Dispatcher]: Resource[F, (F[ExitCode], F[ExitCode])] = {
+  def tasks[F[_]: Temporal: Async]: Resource[F, (F[ExitCode], F[ExitCode])] = {
     implicit val log: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
-    for {
-      cfg <- Resource.eval(ConfigLoader.app[F])
-      xa  <- transactor[F](cfg.dbConfig)
-      repo = NewsRepo.fromTransactor(xa)
-      server = graphQLServer[F](repo)
-        .use(_ =>
-          Async[F]
-            .async_((_: Either[Throwable, Nothing] => Unit) => ())
-            .as(ExitCode.Error) <* log.info("HTTP server stopped")
-        )
-      scraper = scrapeTask[F](repo, cfg.scrapeConfig).as(ExitCode.Error)
-    } yield (server, scraper)
+    Dispatcher[F].flatMap { implicit dispatcher =>
+      for {
+        cfg <- Resource.eval(ConfigLoader.app[F])
+        xa  <- transactor[F](cfg.dbConfig)
+        repo = NewsRepo.fromTransactor(xa)
+        server = graphQLServer[F](repo)
+          .use(_ =>
+            Async[F]
+              .async_((_: Either[Throwable, Nothing] => Unit) => ())
+              .as(ExitCode.Error) <* log.info("HTTP server stopped")
+          )
+        scraper = scrapeTask[F](repo, cfg.scrapeConfig).as(ExitCode.Error)
+      } yield (server, scraper)
+    }
   }
 
 }

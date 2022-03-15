@@ -18,8 +18,6 @@ object Dependencies {
     val sttp          = "3.4.2"
     val monix         = "3.4.0"
     val scalaScraper  = "2.2.1"
-    val quillJdbc     = "3.16.3"
-    val zioMagic      = "0.3.11"
     val postgresql    = "42.3.3"
     val doobie        = "1.0.0-RC1"
   }
@@ -47,7 +45,6 @@ object Dependencies {
     val doobieCore     = doobie("doobie-core")
     val doobiePostgres = doobie("doobie-postgres")
     val doobieHikari   = doobie("doobie-hikari")
-    val doobieQuill    = doobie("doobie-quill")
 
     val http4sDsl    = http4s("http4s-dsl")
     val http4sCore   = http4s("http4s-core")
@@ -76,9 +73,6 @@ object Dependencies {
 //    val monixCats = "io.monix" %% "monix-cats" % "2.3.3" // not added yet, it gives conflict with cats-effect version
 
     val scalaScrapper = "net.ruippeixotog" %% "scala-scraper" % Versions.scalaScraper
-
-    val quillJdbc  = "io.getquill"          %% "quill-jdbc-zio" % Versions.quillJdbc
-    val zioMagic   = "io.github.kitlangton" %% "zio-magic"      % Versions.zioMagic
     val postgresql = "org.postgresql"        % "postgresql"     % Versions.postgresql
 
     // Test
@@ -90,7 +84,7 @@ object Dependencies {
 
   val circeLibs = Seq(circeCore, circeGeneric, circeParser, circeOptics)
 
-  val doobieLibs = Seq(doobieCore, doobiePostgres, doobieHikari, doobieQuill)
+  val doobieLibs = Seq(doobieCore, doobiePostgres, doobieHikari)
 
   val catsLibs = Seq(cats, catsEffect)
 
@@ -108,8 +102,6 @@ object Dependencies {
       sangriaSelf,
       sangriaCirce,
       scalaScrapper,
-      quillJdbc,
-      zioMagic,
       postgresql
     )
 

@@ -1,7 +1,6 @@
 package com.example.codetest.config
 
 import eu.timepit.refined.types.net.UserPortNumber
-import eu.timepit.refined.types.numeric.PosInt
 import eu.timepit.refined.types.string.NonEmptyString
 
 case class DBConfig(
@@ -10,6 +9,6 @@ case class DBConfig(
   user: NonEmptyString,
   password: NonEmptyString,
   database: NonEmptyString,
-  driver: NonEmptyString,
-  schema: NonEmptyString
+  schema: NonEmptyString,
+  driver: NonEmptyString
 )
