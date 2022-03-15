@@ -2,17 +2,18 @@ package com.example.codetest
 
 import _root_.sangria.schema._
 import cats.effect._
-import cats.effect.std.Dispatcher
+import cats.effect.std.{Dispatcher, Supervisor}
 import cats.implicits._
 import com.example.codetest.api.{GraphQL, GraphQLRoutes, PlaygroundRoutes}
 import com.example.codetest.config.{ConfigLoader, DBConfig, ScrapeConfig}
-import com.example.codetest.refined.CustomTypes._
+import com.example.codetest.effects.Background
 import com.example.codetest.repo.NewsRepo
 import com.example.codetest.sangria.SangriaGraphQL
 import com.example.codetest.schema.QueryType
 import com.example.codetest.scraper.{NYTimes, ScrapeService, Scraper}
 import doobie.hikari._
 import doobie.util.ExecutionContexts
+import eu.timepit.refined.auto.autoUnwrap
 import org.http4s._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
@@ -20,7 +21,6 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.{Logger, SelfAwareStructuredLogger}
 
 import scala.concurrent.ExecutionContext.global
-import scala.concurrent.duration.FiniteDuration
 
 trait NewsModule {
 
@@ -29,10 +29,10 @@ trait NewsModule {
   ): Resource[F, HikariTransactor[F]] =
     ExecutionContexts.fixedThreadPool[F](10).flatMap { ce =>
       HikariTransactor.newHikariTransactor(
-        cfg.driver.value,
-        s"jdbc:postgresql://${cfg.host.value}:${cfg.port.value}/${cfg.database.value}?currentSchema=${cfg.schema.value}",
-        cfg.user.value,
-        cfg.password.value,
+        cfg.driver,
+        s"jdbc:postgresql://${cfg.host}:${cfg.port}/${cfg.database}?currentSchema=${cfg.schema}",
+        cfg.user,
+        cfg.password,
         ce
       )
     }
@@ -70,40 +70,33 @@ trait NewsModule {
     GraphQLRoutes[F](gql) <+> PlaygroundRoutes()
   }
 
-  def scraper[F[_]: Async](url: URL): Scraper[F] =
-    NYTimes[F](url)
-
-  def scrapeTask[F[_]: Async: Logger: Temporal](
+  def scrapeTask[F[_]: Async: Logger: Background](
     repo: NewsRepo[F],
     cfg: ScrapeConfig
   ): F[Unit] =
     for {
-      scraper <- scraper(cfg.newsPageUrl).pure[F]
-      _       <- scrapeService(scraper, repo, Some(cfg.interval)).scrape
+      scraper       <- Sync[F].delay(NYTimes[F](cfg.newsPageUrl))
+      scrapeService <- Sync[F].delay(new ScrapeService[F](scraper, repo))
+      _             <- scrapeService.scrape(cfg.interval)
     } yield ()
 
-  def scrapeService[F[_]: Async: Logger: Temporal](
+  def scrapeService[F[_]: Async: Logger: Background](
     scraper: Scraper[F],
-    repo: NewsRepo[F],
-    interval: Option[FiniteDuration]
-  ) =
-    new ScrapeService[F](scraper, repo, interval)
+    repo: NewsRepo[F]
+  ) = new ScrapeService[F](scraper, repo)
 
-  def tasks[F[_]: Temporal: Async]: Resource[F, (F[ExitCode], F[ExitCode])] = {
+  def tasks[F[_]: Async]: Resource[F, Server] = {
     implicit val log: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
-    Dispatcher[F].flatMap { implicit dispatcher =>
-      for {
-        cfg <- Resource.eval(ConfigLoader.app[F])
-        xa  <- transactor[F](cfg.dbConfig)
-        repo = NewsRepo.fromTransactor(xa)
-        server = graphQLServer[F](repo)
-          .use(_ =>
-            Async[F]
-              .async_((_: Either[Throwable, Nothing] => Unit) => ())
-              .as(ExitCode.Error) <* log.info("HTTP server stopped")
-          )
-        scraper = scrapeTask[F](repo, cfg.scrapeConfig).as(ExitCode.Error)
-      } yield (server, scraper)
+    Supervisor[F].flatMap { implicit sp =>
+      Dispatcher[F].flatMap { implicit dispatcher =>
+        for {
+          cfg <- Resource.eval(ConfigLoader.app[F])
+          xa  <- transactor[F](cfg.dbConfig)
+          repo = NewsRepo.fromTransactor(xa)
+          server <- graphQLServer[F](repo)
+          _      <- Resource.eval(scrapeTask[F](repo, cfg.scrapeConfig))
+        } yield server
+      }
     }
   }
 

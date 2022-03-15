@@ -8,6 +8,9 @@ import net.ruippeixotog.scalascraper.browser.{Browser, JsoupBrowser}
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model.Document
+import org.jsoup.Connection
+import scala.concurrent.duration.Duration
+import java.util.concurrent.TimeUnit
 
 trait Scraper[F[_]] {
   def headlines(): F[List[Headline]]
@@ -31,9 +34,9 @@ class NYTimes[F[_]: Sync](
     } yield list
 
   private def extractValues(doc: Document): List[(String, String)] =
-    doc >> elementList("a:has(h2)").map { elements =>
+    doc >> elementList("a:has(h3)").map { elements =>
       elements.map { e =>
-        (e.extract(text("h2")), e.extract(attr("href")))
+        (e.extract(text("h3")), e.extract(attr("href")))
       }
     }
 }
@@ -42,7 +45,14 @@ object NYTimes {
   def apply[F[_]: Sync](url: URL): Scraper[F] =
     new NYTimes[F](
       url,
-      JsoupBrowser(),
+      new CustomJsoupBrowser(Duration(30L, TimeUnit.SECONDS).toMillis.toInt),
       browser => Sync[F].delay(browser.get(url.value))
     )
+}
+
+class CustomJsoupBrowser(timeout: Int) extends JsoupBrowser {
+  override protected[this] def defaultRequestSettings(conn: Connection): Connection = {
+    super.defaultRequestSettings(conn)
+    conn.timeout(timeout)
+  }
 }
