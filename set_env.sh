@@ -3,9 +3,9 @@
 export POSTGRES_HOST="localhost"
 export POSTGRES_PORT=5432
 export POSTGRES_USER="test"
-export POSTGRES_PASSWORD="123"
-export POSTGRES_DATABASE="test"
-export POSTGRES_SCHEMA="test"
+export POSTGRES_PASSWORD="test"
+export POSTGRES_DATABASE="news"
+export POSTGRES_SCHEMA="headlines"
 export POSTGRES_DRIVER="org.postgresql.Driver"
 export HTTP_HEADER_LOG=false
 export HTTP_BODY_LOG=false
