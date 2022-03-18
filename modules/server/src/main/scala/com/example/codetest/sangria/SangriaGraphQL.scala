@@ -19,9 +19,9 @@ import scala.util.{Failure, Success}
 object SangriaGraphQL {
 
   // Some circe lenses
-  private val queryStringLens = root.query.string
-  private val operationNameLens = root.operationName.string
-  private val variablesLens = root.variables.obj
+  private val queryStringLens               = root.query.string
+  private val operationNameLens             = root.operationName.string
+  private val variablesLens                 = root.variables.obj
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
 
   // Format a SyntaxError as a GraphQL `errors`
@@ -32,7 +32,7 @@ object SangriaGraphQL {
           "message" -> Json.fromString(e.getMessage),
           "locations" -> Json.arr(
             Json.obj(
-              "line" -> Json.fromInt(e.originalError.position.line),
+              "line"   -> Json.fromInt(e.originalError.position.line),
               "column" -> Json.fromInt(e.originalError.position.column)
             )
           )
@@ -49,7 +49,7 @@ object SangriaGraphQL {
           "locations" -> Json.fromValues(
             v.locations.map(loc =>
               Json.obj(
-                "line" -> Json.fromInt(loc.line),
+                "line"   -> Json.fromInt(loc.line),
                 "column" -> Json.fromInt(loc.column)
               )
             )
@@ -67,7 +67,7 @@ object SangriaGraphQL {
     Json.obj(
       "errors" -> Json.arr(
         Json.obj(
-          "class" -> Json.fromString(e.getClass.getName),
+          "class"   -> Json.fromString(e.getClass.getName),
           "message" -> Json.fromString(e.getMessage)
         )
       )
@@ -79,16 +79,16 @@ object SangriaGraphQL {
 
     // The rest of the constructor
     def apply[A](
-        schema: Schema[A, Unit],
-        userContext: F[A]
+      schema: Schema[A, Unit],
+      userContext: F[A]
     )(implicit
-        F: Async[F]
+      F: Async[F]
     ): GraphQL[F] =
       new GraphQL[F] {
 
         // Destruct `request` and delegate to the other overload.
         def query(request: Json): F[Either[Json, Json]] = {
-          val queryString = queryStringLens.getOption(request)
+          val queryString   = queryStringLens.getOption(request)
           val operationName = operationNameLens.getOption(request)
           val variables =
             variablesLens.getOption(request).getOrElse(JsonObject())
@@ -103,9 +103,9 @@ object SangriaGraphQL {
 
         // Parse `query` and execute.
         def query(
-            query: String,
-            operationName: Option[String],
-            variables: JsonObject
+          query: String,
+          operationName: Option[String],
+          variables: JsonObject
         ): F[Either[Json, Json]] =
           QueryParser.parse(query) match {
             case Success(ast) =>
@@ -121,11 +121,11 @@ object SangriaGraphQL {
 
         // Execute a GraphQL query with Sangria, lifting into IO for safety and sanity.
         def exec(
-            schema: Schema[A, Unit],
-            userContext: F[A],
-            query: Document,
-            operationName: Option[String],
-            variables: JsonObject
+          schema: Schema[A, Unit],
+          userContext: F[A],
+          query: Document,
+          operationName: Option[String],
+          variables: JsonObject
         ): F[Either[Json, Json]] =
           userContext
             .flatMap { ctx =>
@@ -137,8 +137,8 @@ object SangriaGraphQL {
                     userContext = ctx,
                     variables = Json.fromJsonObject(variables),
                     operationName = operationName,
-                    exceptionHandler = ExceptionHandler {
-                      case (_, e) ⇒ HandledException(e.getMessage)
+                    exceptionHandler = ExceptionHandler { case (_, e) ⇒
+                      HandledException(e.getMessage)
                     }
                   )
                   .onComplete {

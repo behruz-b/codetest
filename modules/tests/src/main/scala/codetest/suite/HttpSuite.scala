@@ -1,44 +1,41 @@
 package codetest.suite
 
-import scala.util.control.NoStackTrace
-
 import cats.effect.IO
-import cats.implicits._
+import com.example.codetest.NewsModule
 import io.circe._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
-import weaver.scalacheck.Checkers
-import weaver.{ Expectations, SimpleIOSuite }
+import org.scalatest.Assertion
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-trait HttpSuite extends SimpleIOSuite with Checkers {
+trait HttpSuite extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
-  case object DummyError extends NoStackTrace
+  val mod: NewsModule = new NewsModule() {}
 
   def expectHttpBodyAndStatus[A: Encoder](routes: HttpRoutes[IO], req: Request[IO])(
-      expectedBody: A,
-      expectedStatus: Status
-  ): IO[Expectations] =
+    expectedBody: A,
+    expectedStatus: Status
+  ): IO[Assertion] =
     routes.run(req).value.flatMap {
       case Some(resp) =>
         resp.asJson.map { json =>
-          // Expectations form a multiplicative Monoid but we can also use other combinators like `expect.all`
-          expect.same(resp.status, expectedStatus) |+| expect
-            .same(json.dropNullValues, expectedBody.asJson.dropNullValues)
+          assert(resp.status == expectedStatus && json.dropNullValues == expectedBody.asJson.dropNullValues)
         }
-      case None => IO.pure(failure("route not found"))
+      case None => IO.pure(fail("route not found"))
     }
 
-  def expectHttpStatus(routes: HttpRoutes[IO], req: Request[IO])(expectedStatus: Status): IO[Expectations] =
+  def expectHttpStatus(routes: HttpRoutes[IO], req: Request[IO])(expectedStatus: Status): IO[Assertion] =
     routes.run(req).value.map {
-      case Some(resp) => expect.same(resp.status, expectedStatus)
-      case None       => failure("route not found")
+      case Some(resp) => assert(resp.status == expectedStatus)
+      case None       => fail("route not found")
     }
 
-  def expectHttpFailure(routes: HttpRoutes[IO], req: Request[IO]): IO[Expectations] =
+  def expectHttpFailure(routes: HttpRoutes[IO], req: Request[IO]): IO[Assertion] =
     routes.run(req).value.attempt.map {
-      case Left(_)  => success
-      case Right(_) => failure("expected a failure")
+      case Left(_)  => succeed
+      case Right(_) => fail("expected a failure")
     }
 
 }

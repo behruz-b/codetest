@@ -3,23 +3,24 @@ import sbt._
 
 object Dependencies {
   object Versions {
-    val cats         = "2.7.0"
-    val catsEffect   = "3.1.1"
-    val circe        = "0.14.1"
-    val http4s       = "0.23.10"
-    val ciris        = "2.3.2"
-    val refined      = "0.9.28"
-    val log4cats     = "2.2.0"
-    val logback      = "1.2.11"
-    val sangria      = "3.0.0"
-    val sttp         = "3.4.2"
-    val monix        = "3.4.0"
-    val scalaScraper = "2.2.1"
-    val postgresql   = "42.3.3"
-    val doobie       = "1.0.0-RC1"
-    val monocle      = "3.1.0"
-    val weaver       = "0.7.11"
-    val derevo       = "0.13.0"
+    val cats          = "2.7.0"
+    val catsEffect    = "3.1.1"
+    val circe         = "0.14.1"
+    val http4s        = "0.23.10"
+    val ciris         = "2.3.2"
+    val refined       = "0.9.28"
+    val log4cats      = "2.2.0"
+    val logback       = "1.2.11"
+    val scalaCheck    = "1.15.4"
+    val scalaTest     = "3.2.10"
+    val scalaTestPlus = "3.2.10.0"
+    val sangria       = "3.0.0"
+    val sttp          = "3.4.2"
+    val monix         = "3.4.0"
+    val scalaScraper  = "2.2.1"
+    val postgresql    = "42.3.3"
+    val doobie        = "1.0.0-RC1"
+    val derevo        = "0.13.0"
 
     val betterMonadicFor = "0.3.1"
     val kindProjector    = "0.13.2"
@@ -43,7 +44,7 @@ object Dependencies {
 
     def sangria(artifact: String, version: String): ModuleID = "org.sangria-graphql" %% artifact % version
 
-    def derevo(artifact: String): ModuleID = "tf.tofu"    %% s"derevo-$artifact" % Versions.derevo
+    def derevo(artifact: String): ModuleID = "tf.tofu" %% s"derevo-$artifact" % Versions.derevo
 
     val circeCore    = circe("circe-core")
     val circeGeneric = circe("circe-generic")
@@ -87,13 +88,11 @@ object Dependencies {
     val organizeImports = "com.github.liancheng" %% "organize-imports" % Versions.organizeImports
 
     // Test
-    val catsLaws          = "org.typelevel"       %% "cats-laws"          % Versions.cats
-    val log4catsNoOp      = "org.typelevel"       %% "log4cats-noop"      % Versions.log4cats
-    val monocleLaw        = "dev.optics"          %% "monocle-law"        % Versions.monocle
-    val refinedScalacheck = "eu.timepit"          %% "refined-scalacheck" % Versions.refined
-    val weaverCats        = "com.disneystreaming" %% "weaver-cats"        % Versions.weaver
-    val weaverDiscipline  = "com.disneystreaming" %% "weaver-discipline"  % Versions.weaver
-    val weaverScalaCheck  = "com.disneystreaming" %% "weaver-scalacheck"  % Versions.weaver
+    val log4catsNoOp      = "org.typelevel"     %% "log4cats-noop"      % Versions.log4cats
+    val refinedScalacheck = "eu.timepit"        %% "refined-scalacheck" % Versions.refined
+    val scalaCheck        = "org.scalacheck"    %% "scalacheck"         % Versions.scalaCheck
+    val scalaTest         = "org.scalatest"     %% "scalatest"          % Versions.scalaTest
+    val scalaTestPlus     = "org.scalatestplus" %% "scalacheck-1-15"    % Versions.scalaTestPlus
 
   }
 
@@ -109,26 +108,27 @@ object Dependencies {
 
   val logLibs = Seq(log4cats, logback)
 
-  val cirisLibs = Seq(cirisRefined, cirisCore)
+  val cirisLibs  = Seq(cirisRefined, cirisCore)
   val derevoLibs = Seq(derevoCore, derevoCats, derevoCirce)
 
   val coreLibraries: Seq[ModuleID] =
-    catsLibs ++ doobieLibs ++ cirisLibs ++ circeLibs ++ http4sLibs ++ sttpLibs ++ logLibs ++ derevoLibs ++ Seq(
+    Seq(
+      CompilerPlugin.kindProjector,
+      CompilerPlugin.betterMonadicFor,
+      CompilerPlugin.semanticDB,
       refinedType,
       sangriaSelf,
       sangriaCirce,
       scalaScrapper,
       postgresql
-    )
+    ) ++ catsLibs ++ doobieLibs ++ cirisLibs ++ circeLibs ++ http4sLibs ++ sttpLibs ++ logLibs ++ derevoLibs
 
   val testLibraries = Seq(
-    catsLaws,
+    scalaCheck,
+    scalaTest,
+    scalaTestPlus,
     log4catsNoOp,
-    monocleLaw,
-    refinedScalacheck,
-    weaverCats,
-    weaverDiscipline,
-    weaverScalaCheck
+    refinedScalacheck
   )
   object CompilerPlugin {
     val betterMonadicFor = compilerPlugin(
