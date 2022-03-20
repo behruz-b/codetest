@@ -70,7 +70,7 @@ object Dependencies {
     val cirisRefined = ciris("ciris-refined")
 
     val cats       = "org.typelevel" %% "cats-core"   % Versions.cats
-    val catsEffect = "org.typelevel" %% "cats-effect" % Versions.catsEffect
+    val catsEffect = "org.typelevel" %% "cats-effect" % "3.3.6"
 
     val log4cats = "org.typelevel" %% "log4cats-slf4j"  % Versions.log4cats
     val logback  = "ch.qos.logback" % "logback-classic" % Versions.logback
