@@ -4,7 +4,7 @@ import sbt._
 object Dependencies {
   object Versions {
     val cats          = "2.7.0"
-    val catsEffect    = "3.1.1"
+    val catsEffect    = "3.3.6"
     val circe         = "0.14.1"
     val http4s        = "0.23.10"
     val ciris         = "2.3.2"
@@ -70,7 +70,7 @@ object Dependencies {
     val cirisRefined = ciris("ciris-refined")
 
     val cats       = "org.typelevel" %% "cats-core"   % Versions.cats
-    val catsEffect = "org.typelevel" %% "cats-effect" % "3.3.6"
+    val catsEffect = "org.typelevel" %% "cats-effect" % Versions.catsEffect
 
     val log4cats = "org.typelevel" %% "log4cats-slf4j"  % Versions.log4cats
     val logback  = "ch.qos.logback" % "logback-classic" % Versions.logback
