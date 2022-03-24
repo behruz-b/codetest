@@ -9,6 +9,8 @@ import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model.Document
 import org.jsoup.Connection
+
+import java.time.LocalDateTime
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 
@@ -29,7 +31,7 @@ class NYTimes[F[_]: Sync](
       list = values.map { case (title, link) =>
         val fullUrl =
           if (link.startsWith(url.value)) link else url.value + link
-        Headline(title, fullUrl)
+        Headline(title, fullUrl, LocalDateTime.now())
       }
     } yield list
 
@@ -45,7 +47,7 @@ object NYTimes {
   def apply[F[_]: Sync](url: URL): Scraper[F] =
     new NYTimes[F](
       url,
-      new CustomJsoupBrowser(Duration(30L, TimeUnit.SECONDS).toMillis.toInt),
+      new CustomJsoupBrowser(Duration(60L, TimeUnit.SECONDS).toMillis.toInt),
       browser => Sync[F].delay(browser.get(url.value))
     )
 }

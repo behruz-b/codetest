@@ -4,5 +4,6 @@ CREATE SCHEMA IF NOT EXISTS news AUTHORIZATION test;
 
 CREATE TABLE news.headline (
    link VARCHAR PRIMARY KEY,
-   title VARCHAR NOT NULL
+   title VARCHAR NOT NULL,
+   created_at TIMESTAMP NOT NULL
 );

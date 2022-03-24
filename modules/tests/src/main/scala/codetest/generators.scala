@@ -1,11 +1,12 @@
 package codetest
 import com.example.codetest.Headline
+import java.time.LocalDateTime
 import org.scalacheck.Gen
 
 object generators {
   val headlineGen: Gen[Headline] =
     for {
-      name     <- Gen.alphaStr
-      password <- Gen.alphaStr
-    } yield Headline(name, password)
+      title <- Gen.alphaStr
+      link  <- Gen.alphaStr
+    } yield Headline(title, link, LocalDateTime.now())
 }
