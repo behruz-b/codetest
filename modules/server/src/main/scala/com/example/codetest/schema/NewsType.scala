@@ -19,7 +19,7 @@ object NewsType {
       fieldsFn = () =>
         fields(
           Field(
-            name = "ttl",
+            name = "title",
             fieldType = StringType,
             resolve = _.value.title
           ),

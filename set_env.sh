@@ -12,4 +12,4 @@ export HTTP_BODY_LOG=false
 export HTTP_HOST="0.0.0.0"
 export HTTP_PORT=8080
 export SCRAPE_URL="https://nytimes.com"
-export INTERVAL=1.hour
+export INTERVAL=1.minute

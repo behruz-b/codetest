@@ -4,6 +4,7 @@ import sbt._
 object Dependencies {
   object Versions {
     val cats          = "2.7.0"
+    val catsRetry     = "3.1.0"
     val catsEffect    = "3.3.6"
     val circe         = "0.14.1"
     val http4s        = "0.23.10"
@@ -87,6 +88,8 @@ object Dependencies {
 
     val organizeImports = "com.github.liancheng" %% "organize-imports" % Versions.organizeImports
 
+    val catsRetry = "com.github.cb372" %% "cats-retry" % Versions.catsRetry
+
     // Test
     val log4catsNoOp      = "org.typelevel"     %% "log4cats-noop"      % Versions.log4cats
     val refinedScalacheck = "eu.timepit"        %% "refined-scalacheck" % Versions.refined
@@ -100,7 +103,7 @@ object Dependencies {
 
   val doobieLibs = Seq(doobieCore, doobiePostgres, doobieHikari)
 
-  val catsLibs = Seq(cats, catsEffect)
+  val catsLibs = Seq(cats, catsEffect, catsRetry)
 
   val http4sLibs = Seq(http4sDsl, http4sCore, http4sServer, http4sClient, http4sCirce)
 
