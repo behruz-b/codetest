@@ -5,7 +5,7 @@ import cats.effect._
 import cats.effect.std.{Dispatcher, Supervisor}
 import cats.implicits._
 import com.example.codetest.api.{GraphQL, GraphQLRoutes, PlaygroundRoutes}
-import com.example.codetest.config.{ConfigLoader, DBConfig, ScrapeConfig}
+import com.example.codetest.config.{ConfigLoader, DBConfig, HttpServerConfig, ScrapeConfig}
 import com.example.codetest.effects.Background
 import com.example.codetest.repo.NewsRepo
 import com.example.codetest.sangria.SangriaGraphQL
@@ -38,11 +38,12 @@ trait NewsModule {
     }
 
   def server[F[_]: Async: Temporal](
-    routes: HttpRoutes[F]
+    routes: HttpRoutes[F],
+    cfg: HttpServerConfig
   ): Resource[F, Server] =
     BlazeServerBuilder[F]
       .withExecutionContext(global)
-      .bindHttp(8080, "0.0.0.0")
+      .bindHttp(cfg.port, cfg.host)
       .withHttpApp(routes.orNotFound)
       .resource
 
@@ -57,10 +58,11 @@ trait NewsModule {
     )
 
   def graphQLServer[F[_]: Async: Temporal: Logger: Dispatcher](
-    repo: NewsRepo[F]
+    repo: NewsRepo[F],
+    cfg: HttpServerConfig
   ): Resource[F, Server] = {
     val rts = httpRoutes(repo)
-    server[F](rts)
+    server[F](rts, cfg)
   }
 
   def httpRoutes[F[_]: Async: Temporal: Dispatcher](
@@ -93,7 +95,7 @@ trait NewsModule {
           cfg <- Resource.eval(ConfigLoader.app[F])
           xa  <- transactor[F](cfg.dbConfig)
           repo = NewsRepo.fromTransactor(xa)
-          server <- graphQLServer[F](repo)
+          server <- graphQLServer[F](repo, cfg.serverConfig)
           _      <- Resource.eval(scrapeTask[F](repo, cfg.scrapeConfig))
         } yield server
       }
